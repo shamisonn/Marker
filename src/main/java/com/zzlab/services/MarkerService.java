@@ -22,7 +22,7 @@ public class MarkerService {
             Map<String, Object> vars = new HashMap<>();
             vars.put("markers", markers);
 
-            return Main.render(vars, "./markers/index.vm");
+            return Main.render(vars, "markers/index.vm");
         });
 
         get("/:id", (req, res) -> {
