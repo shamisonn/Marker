@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface MarkerRepo {
 
-    Marker create(String email, String password);
+    Marker create(String name, String password);
 
     List<Marker> getAll();
 
@@ -14,7 +14,7 @@ public interface MarkerRepo {
 
     Marker get(long id);
 
-    Marker getByEmail(String email);
+    Marker getByName(String name);
 
     Marker update(long id);
 

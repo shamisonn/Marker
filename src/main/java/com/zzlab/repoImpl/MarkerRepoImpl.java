@@ -18,7 +18,7 @@ public class MarkerRepoImpl implements MarkerRepo {
     }
 
     @Override
-    public Marker create(String email, String password) {
+    public Marker create(String name, String password) {
         return null;
     }
 
@@ -41,7 +41,7 @@ public class MarkerRepoImpl implements MarkerRepo {
     }
 
     @Override
-    public Marker getByEmail(String email) {
+    public Marker getByName(String name) {
         return null;
     }
 
