@@ -12,8 +12,11 @@ import static spark.Spark.path;
 public class Main {
 
     public static void main(String[] args) {
+        String dbUser = "hoge";
+        String dbPass = "fuga";
+        String dbPath = "sqlite.db";
 
-        path("/markers", () -> new MarkerService(new MarkerRepoImpl()));
+        path("/markers", () -> new MarkerService(new MarkerRepoImpl(dbUser, dbPass, dbPath)));
 
     }
 

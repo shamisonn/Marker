@@ -10,7 +10,7 @@ public interface MarkerRepo {
 
     List<Marker> getAll();
 
-    List<Marker> getAll(int limit);
+    List<Marker> getAll(int limit, int offset);
 
     Marker get(long id);
 
