@@ -6,7 +6,7 @@ package com.zzlab.models;
 public class Marker {
     private long id;
     private String name;
-    private String password;
+    private transient String password;
     private Role role;
 
     public Marker(long id, String name, String password, Role role) {
