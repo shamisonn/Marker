@@ -16,7 +16,7 @@ public interface MarkerRepo {
 
     Marker getByName(String name);
 
-    Marker update(long id);
+    Marker update(Marker marker);
 
     void delete(long id);
 }

@@ -6,8 +6,7 @@ import com.zzlab.repositories.MarkerRepo;
 
 import java.util.List;
 
-import static spark.Spark.get;
-import static spark.Spark.post;
+import static spark.Spark.*;
 
 public class MarkerService {
     private MarkerRepo markerRepo;
@@ -17,7 +16,6 @@ public class MarkerService {
         Gson gson = new Gson();
 
         get("", (req, res) -> {
-
             List<Marker> markers = this.markerRepo.getAll();
             return gson.toJson(markers);
         });
@@ -31,6 +29,20 @@ public class MarkerService {
         post("", (req, res) -> {
             Marker m = gson.fromJson(req.body(), Marker.class);
             Marker marker = this.markerRepo.create(m.getName(), m.getPassword());
+            return gson.toJson(marker);
+        });
+
+        put("/:id", (req, res) -> {
+            Marker m = gson.fromJson(req.body(), Marker.class);
+            m.setId(Long.parseLong(req.params(":id")));
+            Marker marker = this.markerRepo.update(m);
+            return gson.toJson(marker);
+        });
+
+        delete("/:id", (req, res) -> {
+            long id = Long.parseLong(req.params(":id"));
+            Marker marker = this.markerRepo.get(id);
+            this.markerRepo.delete(id);
             return gson.toJson(marker);
         });
     }

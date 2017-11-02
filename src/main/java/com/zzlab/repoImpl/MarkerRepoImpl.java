@@ -25,59 +25,36 @@ public class MarkerRepoImpl implements MarkerRepo {
     }
 
     private void initTable() {
-        Connection conn = null;
-        try {
-            conn = DriverManager.getConnection(dbUrl, dbUser, dbPass);
-            Statement stat = conn.createStatement();
-            stat.executeUpdate("DROP TABLE IF EXISTS MARKERS;");
-            stat.executeUpdate("CREATE TABLE MARKERS (id INTEGER PRIMARY KEY, name TEXT, password TEXT, role TEXT);");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if(conn != null)
-                    conn.close();
-            } catch(SQLException e) {
-                System.err.println(e);
-            }
-        }
+        String sql = "DROP TABLE IF EXISTS MARKERS;" +
+                "CREATE TABLE MARKERS (id INTEGER PRIMARY KEY, name TEXT, password TEXT, role TEXT)";
+        this.updateSQL(sql);
     }
 
-    @Override
-    public Marker create(String name, String password) {
-        Marker marker = null;
+    private void updateSQL(String sql) {
         Connection conn = null;
         try {
             conn = DriverManager.getConnection(dbUrl, dbUser, dbPass);
             Statement stat = conn.createStatement();
-            String sql = String.format(
-                    "INSERT INTO MARKERS(name, password, role) VALUES('%s', '%s', 'NOMAL')",
-                    name, password
-            );
             stat.executeUpdate(sql);
-            marker = this.getByName(name);
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
             try {
                 if(conn != null)
                     conn.close();
-
             } catch(SQLException e) {
                 System.err.println(e);
             }
         }
-        return marker;
     }
 
-    @Override
-    public List<Marker> getAll() {
+    private List<Marker> querySQL(String sql) {
         List<Marker> markerList = new ArrayList<>();
         Connection conn = null;
         try {
             conn = DriverManager.getConnection(dbUrl, dbUser, dbPass);
             Statement stat = conn.createStatement();
-            ResultSet set = stat.executeQuery("SELECT * FROM MARKERS");
+            ResultSet set = stat.executeQuery(sql);
             while (set.next()) {
                 long id = set.getLong("id");
                 String name = set.getString("name");
@@ -95,32 +72,88 @@ public class MarkerRepoImpl implements MarkerRepo {
                 System.err.println(e);
             }
         }
-
         return markerList;
     }
 
     @Override
+    public Marker create(String name, String password) {
+        String sql = String.format(
+                "INSERT INTO MARKERS(name, password, role) VALUES('%s', '%s', 'NOMAL')",
+                name, password
+        );
+        this.updateSQL(sql);
+        return this.getByName(name);
+    }
+
+    @Override
+    public List<Marker> getAll() {
+        String sql = "SELECT * FROM MARKERS";
+
+        return this.querySQL(sql);
+    }
+
+    @Override
     public List<Marker> getAll(int limit, int offset) {
-        return null;
+        String sql = String.format(
+                "SELECT * FROM MARKERS LIMIT %d OFFSET %d",
+                limit, offset
+        );
+
+        return this.querySQL(sql);
     }
 
     @Override
     public Marker get(long id) {
-        return null;
+        String sql = String.format(
+                "SELECT * FROM MARKERS WHERE id == %d",
+                id
+        );
+        return this.querySQL(sql).get(0);
     }
 
     @Override
     public Marker getByName(String name) {
-        return null;
+        String sql = String.format(
+                "SELECT * FROM MARKERS WHERE name == '%s'",
+                name
+        );
+        return this.querySQL(sql).get(0);
     }
 
     @Override
-    public Marker update(long id) {
-        return null;
+    public Marker update(Marker marker) {
+        long id = marker.getId();
+        String sql = String.format(
+                "SELECT * FROM MARKERS WHERE id == %d",
+                id
+        );
+        Marker old = this.querySQL(sql).get(0);
+        if (marker.getName() == null) {
+            marker.setName(old.getName());
+        }
+        if (marker.getPassword() == null) {
+            marker.setPassword(old.getPassword());
+        }
+        if (marker.getRole() == null) {
+            marker.setRole(old.getRole());
+        }
+        sql = String.format(
+                "UPDATE MARKERS SET name = '%s', password = '%s', role = '%s' WHERE id == %d",
+                marker.getName(),
+                marker.getPassword(),
+                marker.getRole().name(),
+                marker.getId()
+        );
+        this.updateSQL(sql);
+        return marker;
     }
 
     @Override
     public void delete(long id) {
-
+        String sql = String.format(
+                "DELETE FROM MARKERS WHERE id == %d",
+                id
+        );
+        this.updateSQL(sql);
     }
 }
