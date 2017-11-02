@@ -1,36 +1,37 @@
 package com.zzlab.services;
 
-import com.zzlab.Main;
+import com.google.gson.Gson;
 import com.zzlab.models.Marker;
 import com.zzlab.repositories.MarkerRepo;
-import spark.ModelAndView;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static spark.Spark.get;
+import static spark.Spark.post;
 
 public class MarkerService {
     private MarkerRepo markerRepo;
 
     public MarkerService(final MarkerRepo markerRepo) {
         this.markerRepo = markerRepo;
+        Gson gson = new Gson();
 
         get("", (req, res) -> {
-            List<Marker> markers = markerRepo.getAll();
-            Map<String, Object> vars = new HashMap<>();
-            vars.put("markers", markers);
 
-            return Main.render(vars, "markers/index.vm");
+            List<Marker> markers = this.markerRepo.getAll();
+            return gson.toJson(markers);
         });
 
         get("/:id", (req, res) -> {
             long id = Long.parseLong(req.params(":id"));
-            Marker marker = markerRepo.get(id);
-            return marker.getName();
+            Marker marker = this.markerRepo.get(id);
+            return gson.toJson(marker);
         });
 
+        post("", (req, res) -> {
+            Marker m = gson.fromJson(req.body(), Marker.class);
+            Marker marker = this.markerRepo.create(m.getName(), m.getPassword());
+            return gson.toJson(marker);
+        });
     }
-
 }
