@@ -21,6 +21,26 @@ public class MarkerRepoImpl implements MarkerRepo {
         this.dbUrl = "jdbc:sqlite:" + dbPath;
         this.dbUser = dbUser;
         this.dbPass = dbPass;
+        this.initTable();
+    }
+
+    private void initTable() {
+        Connection conn = null;
+        try {
+            conn = DriverManager.getConnection(dbUrl, dbUser, dbPass);
+            Statement stat = conn.createStatement();
+            stat.executeUpdate("DROP TABLE IF EXISTS MARKERS;");
+            stat.executeUpdate("CREATE TABLE MARKERS (id INTEGER PRIMARY KEY, name TEXT, password TEXT, role TEXT);");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if(conn != null)
+                    conn.close();
+            } catch(SQLException e) {
+                System.err.println(e);
+            }
+        }
     }
 
     @Override
