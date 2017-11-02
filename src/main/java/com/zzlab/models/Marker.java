@@ -6,7 +6,7 @@ package com.zzlab.models;
 public class Marker {
     private long id;
     private String name;
-    private transient String password;
+    private String password;
     private Role role;
 
     public Marker(long id, String name, String password, Role role) {
@@ -46,5 +46,15 @@ public class Marker {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    @Override
+    public String toString() {
+        return "Marker{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", password='" + password + '\'' +
+                ", role=" + role +
+                '}';
     }
 }
