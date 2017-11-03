@@ -1,12 +1,12 @@
 package com.zzlab;
 
-import com.zzlab.jwt.LoginManager;
+import com.zzlab.jwt.AuthManager;
 import com.zzlab.repoImpl.MarkerRepoImpl;
 import com.zzlab.repositories.MarkerRepo;
-import com.zzlab.services.LoginService;
+import com.zzlab.services.AuthService;
 import com.zzlab.services.MarkerService;
 
-import static spark.Spark.path;
+import static spark.Spark.*;
 
 public class Main {
 
@@ -15,11 +15,18 @@ public class Main {
         String dbUser = "hoge";
         String dbPass = "fuga";
 
-        LoginManager manager = new LoginManager("aa");
+        AuthManager manager = new AuthManager("aa");
         manager.scheduledCleanBlackList();
         MarkerRepo markerRepo = new MarkerRepoImpl(dbPath, dbUser, dbPass);
-        path("/markers", () -> new MarkerService(markerRepo));
-        path("/login", () -> new LoginService(markerRepo, manager));
+
+        path("", () -> new AuthService(markerRepo, manager));
+
+        before("/markers", manager.authBefore);
+        path("/markers", () -> new MarkerService(markerRepo, manager));
+        after("/markers", manager.authAfter);
+
+
+
 
     }
 }

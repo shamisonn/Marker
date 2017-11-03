@@ -117,7 +117,11 @@ public class MarkerRepoImpl implements MarkerRepo {
                 "SELECT * FROM MARKERS WHERE name == '%s'",
                 name
         );
-        return this.querySQL(sql).get(0);
+        List<Marker> markers = this.querySQL(sql);
+        if (markers.size() == 0) {
+            return null;
+        }
+        return markers.get(0);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.zzlab.services;
 
 import com.google.gson.Gson;
+import com.zzlab.jwt.AuthManager;
 import com.zzlab.models.Marker;
 import com.zzlab.repositories.MarkerRepo;
 
@@ -12,7 +13,7 @@ import static spark.Spark.*;
 public class MarkerService {
     private MarkerRepo markerRepo;
 
-    public MarkerService(final MarkerRepo markerRepo) {
+    public MarkerService(MarkerRepo markerRepo, AuthManager manager) {
         this.markerRepo = markerRepo;
         Gson gson = new Gson();
 
@@ -29,14 +30,11 @@ public class MarkerService {
             return gson.toJson(marker);
         });
 
-        post("", (req, res) -> {
-            Marker m = gson.fromJson(req.body(), Marker.class);
-            Marker marker = this.markerRepo.create(m.getName(), m.getPassword());
-            marker.setPassword(null);
-            return gson.toJson(marker);
-        });
-
         put("/:id", (req, res) -> {
+            if (Long.parseLong(req.params(":id")) != manager.getUserId(req)) {
+                res.status(403);
+                return "{\"message\":\"You can't use this api, because request ID does not match your ID.\"}";
+            }
             Marker m = gson.fromJson(req.body(), Marker.class);
             m.setId(Long.parseLong(req.params(":id")));
             Marker marker = this.markerRepo.update(m);
@@ -45,6 +43,10 @@ public class MarkerService {
         });
 
         delete("/:id", (req, res) -> {
+            if (Long.parseLong(req.params(":id")) != manager.getUserId(req)) {
+                res.status(403);
+                return "{\"message\":\"You can't use this api, because request ID does not match your ID.\"}";
+            }
             long id = Long.parseLong(req.params(":id"));
             Marker marker = this.markerRepo.get(id);
             this.markerRepo.delete(id);

@@ -6,6 +6,9 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import spark.Filter;
+import spark.Request;
+import spark.Response;
 
 import java.io.UnsupportedEncodingException;
 import java.time.ZonedDateTime;
@@ -17,12 +20,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class LoginManager {
+import static spark.Spark.halt;
+
+public class AuthManager {
 
     private String secret;
     private Set<String> blackList;
 
-    public LoginManager(String secret) {
+    public AuthManager(String secret) {
         this.secret = secret;
         this.blackList = Collections.synchronizedSet(new HashSet<>());
     }
@@ -42,7 +47,7 @@ public class LoginManager {
             ZonedDateTime from = ZonedDateTime.now();
             ZonedDateTime to = from.plusDays(1L);//期限は1日
             token = JWT.create()
-                    .withClaim("user_id", id)
+                    .withClaim("userId", id)
                     .withIssuer("marker.zzlab.server")
                     .withIssuedAt(Date.from(from.toInstant()))
                     .withExpiresAt(Date.from(to.toInstant()))
@@ -84,6 +89,36 @@ public class LoginManager {
 
         return true;
     }
+
+    public long getUserId(Request req) {
+        if (!req.headers().contains("Authorization")) {
+            return 0;
+        }
+        String token = req.headers("Authorization").split(" ")[1];
+        try {
+            DecodedJWT decode = JWT.decode(token);
+            return decode.getClaim("userId").asLong();
+        } catch (JWTDecodeException e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    public Filter authBefore = (Request req, Response res) -> {
+        boolean authenticated = false;
+        if (req.headers().contains("Authorization")) {
+            String token = req.headers("Authorization").split(" ")[1];
+            authenticated = verifyToken(token);
+        }
+        if (!authenticated) {
+            halt(401, "{\"message\":\"You should LOGIN\"}");
+            System.out.println("!!!");
+        }
+    };
+
+    public Filter authAfter = (Request req, Response res) -> {
+        res.header("Authorization", req.headers("Authorization"));
+    };
 
     /**
      * tokenの無効化。black listに入れることで無効化する。
