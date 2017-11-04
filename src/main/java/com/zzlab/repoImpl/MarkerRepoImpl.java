@@ -4,57 +4,33 @@ import com.zzlab.models.Marker;
 import com.zzlab.models.Role;
 import com.zzlab.repositories.MarkerRepo;
 
-import java.sql.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * MarkerのCRUD処理を記述する。
  * by sqlite3-jdbc
  */
 public class MarkerRepoImpl implements MarkerRepo {
-    private String dbUrl;
-    private String dbUser;
-    private String dbPass;
+    DBManager manager;
 
-    public MarkerRepoImpl(String dbPath, String dbUser, String dbPass){
-        this.dbUrl = "jdbc:sqlite:" + dbPath;
-        this.dbUser = dbUser;
-        this.dbPass = dbPass;
+    public MarkerRepoImpl(DBManager manager) {
+        this.manager = manager;
         this.initTable();
     }
 
     private void initTable() {
         String sql = "DROP TABLE IF EXISTS MARKERS;" +
                 "CREATE TABLE MARKERS (id INTEGER PRIMARY KEY, name TEXT, password TEXT, role TEXT)";
-        this.updateSQL(sql);
+        this.manager.updateSQL(sql);
     }
 
-    private void updateSQL(String sql) {
-        Connection conn = null;
-        try {
-            conn = DriverManager.getConnection(dbUrl, dbUser, dbPass);
-            Statement stat = conn.createStatement();
-            stat.executeUpdate(sql);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if(conn != null)
-                    conn.close();
-            } catch(SQLException e) {
-                System.err.println(e);
-            }
-        }
-    }
-
-    private List<Marker> querySQL(String sql) {
+    private Function<ResultSet, List> binder = set -> {
         List<Marker> markerList = new ArrayList<>();
-        Connection conn = null;
         try {
-            conn = DriverManager.getConnection(dbUrl, dbUser, dbPass);
-            Statement stat = conn.createStatement();
-            ResultSet set = stat.executeQuery(sql);
             while (set.next()) {
                 long id = set.getLong("id");
                 String name = set.getString("name");
@@ -64,16 +40,9 @@ public class MarkerRepoImpl implements MarkerRepo {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                if(conn != null)
-                    conn.close();
-            } catch(SQLException e) {
-                System.err.println(e);
-            }
         }
         return markerList;
-    }
+    };
 
     @Override
     public Marker create(String name, String password) {
@@ -81,15 +50,14 @@ public class MarkerRepoImpl implements MarkerRepo {
                 "INSERT INTO MARKERS(name, password, role) VALUES('%s', '%s', 'NOMAL')",
                 name, password
         );
-        this.updateSQL(sql);
+        this.manager.updateSQL(sql);
         return this.getByName(name);
     }
 
     @Override
     public List<Marker> getAll() {
         String sql = "SELECT * FROM MARKERS";
-
-        return this.querySQL(sql);
+        return (List<Marker>) this.manager.querySQL(sql, this.binder);
     }
 
     @Override
@@ -99,7 +67,7 @@ public class MarkerRepoImpl implements MarkerRepo {
                 limit, offset
         );
 
-        return this.querySQL(sql);
+        return (List<Marker>) this.manager.querySQL(sql, this.binder);
     }
 
     @Override
@@ -108,7 +76,7 @@ public class MarkerRepoImpl implements MarkerRepo {
                 "SELECT * FROM MARKERS WHERE id == %d",
                 id
         );
-        return this.querySQL(sql).get(0);
+        return ((List<Marker>) this.manager.querySQL(sql, this.binder)).get(0);
     }
 
     @Override
@@ -117,7 +85,7 @@ public class MarkerRepoImpl implements MarkerRepo {
                 "SELECT * FROM MARKERS WHERE name == '%s'",
                 name
         );
-        List<Marker> markers = this.querySQL(sql);
+        List<Marker> markers = (List<Marker>) this.manager.querySQL(sql, this.binder);
         if (markers.size() == 0) {
             return null;
         }
@@ -126,12 +94,7 @@ public class MarkerRepoImpl implements MarkerRepo {
 
     @Override
     public Marker update(Marker marker) {
-        long id = marker.getId();
-        String sql = String.format(
-                "SELECT * FROM MARKERS WHERE id == %d",
-                id
-        );
-        Marker old = this.querySQL(sql).get(0);
+        Marker old = this.get(marker.getId());
         if (marker.getName() == null) {
             marker.setName(old.getName());
         }
@@ -141,14 +104,14 @@ public class MarkerRepoImpl implements MarkerRepo {
         if (marker.getRole() == null) {
             marker.setRole(old.getRole());
         }
-        sql = String.format(
+        String sql = String.format(
                 "UPDATE MARKERS SET name = '%s', password = '%s', role = '%s' WHERE id == %d",
                 marker.getName(),
                 marker.getPassword(),
                 marker.getRole().name(),
                 marker.getId()
         );
-        this.updateSQL(sql);
+        this.manager.updateSQL(sql);
         return marker;
     }
 
@@ -158,6 +121,6 @@ public class MarkerRepoImpl implements MarkerRepo {
                 "DELETE FROM MARKERS WHERE id == %d",
                 id
         );
-        this.updateSQL(sql);
+        this.manager.updateSQL(sql);
     }
 }
