@@ -8,20 +8,22 @@ import java.time.ZonedDateTime;
 public class Answer {
     private long id;
     private long problemId;
-    private long studentId;
+    private long studentId; // 学籍番号
     private String answerDirPath;
+    private ZonedDateTime submitDate; // 提出日
 
     private long markerId;
     private int point;
     private String markerComments;
-    private ZonedDateTime markDate;
+    private ZonedDateTime markDate; // 採点日
 
 
-    public Answer(long id, long problemId, long studentId, String answerDirPath) {
+    public Answer(long id, long problemId, long studentId, String answerDirPath, ZonedDateTime submitDate) {
         this.id = id;
         this.problemId = problemId;
         this.studentId = studentId;
         this.answerDirPath = answerDirPath;
+        this.submitDate = submitDate;
     }
 
     public long getId() {
@@ -54,6 +56,14 @@ public class Answer {
 
     public void setAnswerDirPath(String answerDirPath) {
         this.answerDirPath = answerDirPath;
+    }
+
+    public ZonedDateTime getSubmitDate() {
+        return submitDate;
+    }
+
+    public void setSubmitDate(ZonedDateTime submitDate) {
+        this.submitDate = submitDate;
     }
 
     public long getMarkerId() {
