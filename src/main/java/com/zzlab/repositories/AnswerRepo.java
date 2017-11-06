@@ -7,13 +7,16 @@ import java.time.ZonedDateTime;
 import java.util.List;
 
 public interface AnswerRepo {
-    Answer create(long problemId, long studentId, String answerDirPath);
+
+    List<Answer> createMulti(List<Answer> answers);
+
+    Answer create(long problemId, long studentId, String answerDirPath, ZonedDateTime submitDate);
 
     List<Answer> getAllByProblem(long problemId);
 
     List<Answer> getAllByProblemSubject(String subject);
 
-    List<Answer> getAllByStudentId(long studentId);
+    List<Answer> getAllByStudentId(String studentId);
 
     List<Answer> getAllByTime(ZonedDateTime from, ZonedDateTime to);
 
