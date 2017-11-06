@@ -19,8 +19,8 @@ public class ProblemRepoImpl implements ProblemRepo {
     }
 
     private void initTable() {
-        String sql = "DROP TABLE IF EXISTS PROBLEMS;" +
-                "CREATE TABLE PROBLEMS(" +
+        String sql = "CREATE TABLE IF NOT EXISTS " +
+                "PROBLEMS(" +
                 "id INTEGER PRIMARY KEY, " +
                 "title TEXT, " +
                 "description TEXT, " +

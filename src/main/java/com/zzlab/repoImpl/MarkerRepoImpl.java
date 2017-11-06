@@ -23,8 +23,12 @@ public class MarkerRepoImpl implements MarkerRepo {
     }
 
     private void initTable() {
-        String sql = "DROP TABLE IF EXISTS MARKERS;" +
-                "CREATE TABLE MARKERS (id INTEGER PRIMARY KEY, name TEXT, password TEXT, role TEXT)";
+        String sql = "CREATE TABLE IF NOT EXISTS " +
+                "MARKERS (" +
+                "id INTEGER PRIMARY KEY, " +
+                "name TEXT, " +
+                "password TEXT, " +
+                "role TEXT) ";
         this.manager.updateSQL(sql);
     }
 
